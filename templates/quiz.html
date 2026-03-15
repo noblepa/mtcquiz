@@ -28,7 +28,7 @@ transition:0.2s;
 <div class="container mt-4">
 
 <div class="text-center mb-4">
-<h2>Physics MCQ Quiz</h2>
+<h2>Observational Astronomy Quiz</h2>
 <h5>Student: {{name}}</h5>
 </div>
 
@@ -43,7 +43,9 @@ transition:0.2s;
 
 <h5>
 Q{{loop.index}}. {{q.question}}
-<span class="badge bg-primary">{{q.marks}} marks</span>
+<span class="badge bg-primary">
+CO: {{q.CO}} | {{q.marks}} marks
+</span>
 </h5>
 
 <div class="mt-3">
