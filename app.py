@@ -3,6 +3,10 @@ import pandas as pd
 from flask import Flask, render_template, request, send_file
 from io import BytesIO
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+
 app = Flask(__name__)
 
 # Load question bank
@@ -13,6 +17,10 @@ except Exception as e:
     df = pd.DataFrame()
 
 quiz_questions = []
+last_results = []
+last_score = 0
+last_name = ""
+last_co_scores = {}
 
 
 @app.route("/")
@@ -43,16 +51,11 @@ def quiz():
         (df["module"].isin(selected_modules))
     ]
 
-    # Safety check
     if filtered.empty:
         return "No questions available for selected CO or Module."
 
     one_mark = filtered[filtered["marks"] == 1]
     two_mark = filtered[filtered["marks"] == 2]
-
-    # Enforce minimum availability
-    if len(one_mark) < 1 and len(two_mark) < 1:
-        return "Question bank insufficient for selected filters."
 
     q1 = one_mark.sample(min(10, len(one_mark)))
     q2 = two_mark.sample(min(5, len(two_mark)))
@@ -93,6 +96,8 @@ def quiz():
 @app.route("/submit", methods=["POST"])
 def submit():
 
+    global last_results, last_score, last_name, last_co_scores
+
     name = request.form["name"]
 
     total_score = 0
@@ -119,36 +124,80 @@ def submit():
             co_scores[co] += marks
 
         results.append({
-            "Question ID": qid,
-            "Question": q["question"],
-            "Your Answer": user_ans,
-            "Correct Answer": correct,
-            "Marks": marks,
-            "Obtained": obtained,
-            "CO": co
+            "question": q["question"],
+            "your": user_ans,
+            "correct": correct,
+            "marks": marks,
+            "obtained": obtained,
+            "co": co
         })
 
-    result_df = pd.DataFrame(results)
+    last_results = results
+    last_score = total_score
+    last_name = name
+    last_co_scores = co_scores
 
-    # Create Excel file in memory
-    output = BytesIO()
+    return render_template(
+        "result.html",
+        name=name,
+        score=total_score,
+        co_scores=co_scores,
+        results=results
+    )
 
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
 
-        result_df.to_excel(writer, index=False, sheet_name="Responses")
+@app.route("/download_pdf")
+def download_pdf():
 
-        summary = pd.DataFrame(
-            list(co_scores.items()),
-            columns=["CO", "Score"]
-        )
+    buffer = BytesIO()
 
-        summary.to_excel(writer, index=False, sheet_name="CO Scores")
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
 
-    output.seek(0)
+    styles = getSampleStyleSheet()
+
+    elements = []
+
+    elements.append(Paragraph(f"Quiz Result - {last_name}", styles["Title"]))
+    elements.append(Spacer(1, 20))
+
+    elements.append(Paragraph(f"Total Score: {last_score}", styles["Heading2"]))
+    elements.append(Spacer(1, 20))
+
+    elements.append(Paragraph("CO-wise Score", styles["Heading3"]))
+    elements.append(Spacer(1, 10))
+
+    co_table_data = [["CO", "Score"]]
+
+    for co, score in last_co_scores.items():
+        co_table_data.append([co, score])
+
+    co_table = Table(co_table_data)
+
+    elements.append(co_table)
+    elements.append(Spacer(1, 20))
+
+    table_data = [["Question", "Your Answer", "Correct Answer", "Marks"]]
+
+    for r in last_results:
+
+        table_data.append([
+            r["question"],
+            r["your"],
+            r["correct"],
+            f'{r["obtained"]}/{r["marks"]}'
+        ])
+
+    table = Table(table_data)
+
+    elements.append(table)
+
+    doc.build(elements)
+
+    buffer.seek(0)
 
     return send_file(
-        output,
-        download_name=f"{name}_quiz_result.xlsx",
+        buffer,
+        download_name=f"{last_name}_quiz_result.pdf",
         as_attachment=True
     )
 
