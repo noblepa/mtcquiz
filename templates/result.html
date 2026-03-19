@@ -8,7 +8,6 @@
 
 <style>
 
-/* General styling */
 body{
 background:#f4f6f9;
 }
@@ -20,41 +19,22 @@ border-radius:10px;
 box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Header styling */
 .header{
 text-align:center;
 margin-bottom:20px;
 }
 
-.header h2{
-font-weight:bold;
-}
-
-.meta{
-margin-top:10px;
-}
-
-/* Tables */
-table{
-font-size:14px;
-}
-
-/* Print styling */
 @media print {
-
-body{
-background:white;
-}
-
 button{
 display:none;
 }
-
+body{
+background:white;
+}
 .report-card{
 box-shadow:none;
 border:none;
 }
-
 }
 
 </style>
@@ -67,31 +47,32 @@ border:none;
 
 <div class="report-card">
 
-<!-- HEADER -->
 <div class="header">
 
 <h2>Mar Thoma College, Tiruvalla</h2>
 <h4>Department of Physics</h4>
 <h5>Observational Astronomy Assessment Report</h5>
 
-<div class="meta">
-<strong>Student Name:</strong> {{name}} <br>
+<p>
+<strong>Student:</strong> {{name}} <br>
 <strong>Total Score:</strong> {{score}} <br>
-<strong>Date:</strong> <script>document.write(new Date().toLocaleDateString())</script>
-</div>
+<strong>Date:</strong>
+<script>document.write(new Date().toLocaleDateString())</script>
+</p>
 
 </div>
 
 <hr>
 
-<!-- CO SUMMARY -->
 <h5>Course Outcome (CO) Attainment</h5>
 
 <table class="table table-bordered text-center">
 
 <tr>
 <th>CO</th>
-<th>Marks Obtained</th>
+<th>Obtained</th>
+<th>Maximum</th>
+<th>%</th>
 </tr>
 
 {% for co, marks in co_scores.items() %}
@@ -99,6 +80,8 @@ border:none;
 <tr>
 <td>{{co}}</td>
 <td>{{marks}}</td>
+<td>{{co_max_marks[co]}}</td>
+<td>{{ ((marks / co_max_marks[co]) * 100) | round(2) }} %</td>
 </tr>
 
 {% endfor %}
@@ -107,8 +90,7 @@ border:none;
 
 <hr>
 
-<!-- QUESTION DETAILS -->
-<h5>Detailed Response Sheet</h5>
+<h5>Detailed Response</h5>
 
 <table class="table table-bordered">
 
@@ -136,8 +118,6 @@ border:none;
 
 </table>
 
-<hr>
-
 <!-- FOOTER -->
 <div class="row mt-5">
 
@@ -153,15 +133,10 @@ ____________________
 ____________________
 </div>
 
-</div>
-
-<!-- BUTTON -->
 <div class="text-center mt-4">
-
 <button onclick="window.print()" class="btn btn-success btn-lg">
 Save as PDF
 </button>
-
 </div>
 
 </div>

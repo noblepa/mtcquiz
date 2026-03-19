@@ -43,11 +43,16 @@ transition:0.2s;
 
 <h5>
 Q{{loop.index}}. {{q.question}}
-<span class="badge bg-primary">
-CO: {{q.CO}} | {{q.marks}} marks
-</span>
-</h5>
 
+<span class="badge bg-info">
+{{q.CO}}
+</span>
+
+<span class="badge bg-primary">
+{{q.marks}} marks
+</span>
+
+</h5>
 <div class="mt-3">
 
 {% for option in q.options %}

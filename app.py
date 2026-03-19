@@ -1,11 +1,6 @@
 import random
 import pandas as pd
-from flask import Flask, render_template, request, send_file
-from io import BytesIO
-
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import A4
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -17,10 +12,6 @@ except Exception as e:
     df = pd.DataFrame()
 
 quiz_questions = []
-last_results = []
-last_score = 0
-last_name = ""
-last_co_scores = {}
 
 
 @app.route("/")
@@ -29,11 +20,7 @@ def index():
     cos = sorted(df["CO"].dropna().unique())
     modules = sorted(df["module"].dropna().unique())
 
-    return render_template(
-        "index.html",
-        cos=cos,
-        modules=modules
-    )
+    return render_template("index.html", cos=cos, modules=modules)
 
 
 @app.route("/quiz", methods=["POST"])
@@ -86,22 +73,17 @@ def quiz():
 
     quiz_questions = questions
 
-    return render_template(
-        "quiz.html",
-        questions=questions,
-        name=name
-    )
+    return render_template("quiz.html", questions=questions, name=name)
 
 
 @app.route("/submit", methods=["POST"])
 def submit():
 
-    global last_results, last_score, last_name, last_co_scores
-
     name = request.form["name"]
 
     total_score = 0
     co_scores = {}
+    co_max_marks = {}
     results = []
 
     for q in quiz_questions:
@@ -113,8 +95,13 @@ def submit():
         marks = q["marks"]
         co = q["CO"]
 
+        # Initialize
         if co not in co_scores:
             co_scores[co] = 0
+            co_max_marks[co] = 0
+
+        # Add to max marks
+        co_max_marks[co] += marks
 
         obtained = 0
 
@@ -132,19 +119,14 @@ def submit():
             "co": co
         })
 
-    last_results = results
-    last_score = total_score
-    last_name = name
-    last_co_scores = co_scores
-
     return render_template(
         "result.html",
         name=name,
         score=total_score,
         co_scores=co_scores,
+        co_max_marks=co_max_marks,
         results=results
     )
-
 
 
 if __name__ == "__main__":
