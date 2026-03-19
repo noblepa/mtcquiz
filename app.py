@@ -146,61 +146,6 @@ def submit():
     )
 
 
-@app.route("/download_pdf")
-def download_pdf():
-
-    buffer = BytesIO()
-
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-
-    styles = getSampleStyleSheet()
-
-    elements = []
-
-    elements.append(Paragraph(f"Quiz Result - {last_name}", styles["Title"]))
-    elements.append(Spacer(1, 20))
-
-    elements.append(Paragraph(f"Total Score: {last_score}", styles["Heading2"]))
-    elements.append(Spacer(1, 20))
-
-    elements.append(Paragraph("CO-wise Score", styles["Heading3"]))
-    elements.append(Spacer(1, 10))
-
-    co_table_data = [["CO", "Score"]]
-
-    for co, score in last_co_scores.items():
-        co_table_data.append([co, score])
-
-    co_table = Table(co_table_data)
-
-    elements.append(co_table)
-    elements.append(Spacer(1, 20))
-
-    table_data = [["Question", "Your Answer", "Correct Answer", "Marks"]]
-
-    for r in last_results:
-
-        table_data.append([
-            r["question"],
-            r["your"],
-            r["correct"],
-            f'{r["obtained"]}/{r["marks"]}'
-        ])
-
-    table = Table(table_data)
-
-    elements.append(table)
-
-    doc.build(elements)
-
-    buffer.seek(0)
-
-    return send_file(
-        buffer,
-        download_name=f"{last_name}_quiz_result.pdf",
-        as_attachment=True
-    )
-
 
 if __name__ == "__main__":
     app.run(debug=True)
