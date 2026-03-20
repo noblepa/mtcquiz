@@ -77,13 +77,11 @@ border:none;
 
 {% for co in co_scores.keys() | sort %}
 
-<!--{% for co, marks in co_scores.items() %}-->
-
 <tr>
 <td>{{co}}</td>
-<td>{{marks}}</td>
+<td>{{co_scores[co]}}</td>
 <td>{{co_max_marks[co]}}</td>
-<td>{{ ((marks / co_max_marks[co]) * 100) | round(2) }} %</td>
+<td>{{ ((co_scores[co] / co_max_marks[co]) * 100) | round(2) }} %</td>
 </tr>
 
 {% endfor %}

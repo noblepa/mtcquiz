@@ -57,7 +57,7 @@ Q{{loop.index}}. {{q.question}}
 
 {% for option in q.options %}
 <label class="option w-100">
-<input type="radio" name="{{q.id}}" value="{{option}}" required>
+<input type="radio" name="{{q.id}}" value="{{option}}">
 {{option}}
 </label>
 {% endfor %}
