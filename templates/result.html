@@ -75,7 +75,9 @@ border:none;
 <th>%</th>
 </tr>
 
-{% for co, marks in co_scores.items() %}
+{% for co in co_scores.keys() | sort %}
+
+<!--{% for co, marks in co_scores.items() %}-->
 
 <tr>
 <td>{{co}}</td>
