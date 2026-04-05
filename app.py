@@ -29,7 +29,7 @@ def quiz():
 
     global quiz_questions, current_pattern
 
-    name = request.form["name"]
+    name = request.form.get("name", "Student")
     pattern = request.form.get("pattern")
 
     current_pattern = pattern
@@ -57,7 +57,7 @@ def quiz():
     one_mark = filtered[filtered["marks"] == 1]
     two_mark = filtered[filtered["marks"] == 2]
 
-    # Strict validation (exam mode)
+    # Strict validation
     if len(one_mark) < n1 or len(two_mark) < n2:
         return f"Not enough questions available for selected pattern. Required: {n1} (1-mark), {n2} (2-mark)"
 
@@ -102,7 +102,13 @@ def quiz():
 @app.route("/submit", methods=["POST"])
 def submit():
 
-    name = request.form["name"]
+    global current_pattern
+
+    name = request.form.get("name", "Student")
+
+    # Prevent session error
+    if not quiz_questions:
+        return "Session expired. Please start quiz again."
 
     total_score = 0
     co_scores = {}
@@ -140,13 +146,14 @@ def submit():
             "co": co
         })
 
-    # Sort CO properly (CO1, CO2, CO10 handled correctly)
-    def extract_co_number(co):
-		import re
-		match = re.search(r'\d+', str(co))  # extract first number
-		return int(match.group()) if match else 999
+    # Robust CO sorting (handles descriptive CO labels)
+    import re
 
-	sorted_cos = sorted(co_scores.keys(), key=extract_co_number)
+    def extract_co_number(co):
+        match = re.search(r'\d+', str(co))
+        return int(match.group()) if match else 999
+
+    sorted_cos = sorted(co_scores.keys(), key=extract_co_number)
 
     return render_template(
         "result.html",
