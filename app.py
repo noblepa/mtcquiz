@@ -12,6 +12,7 @@ except Exception as e:
     df = pd.DataFrame()
 
 quiz_questions = []
+current_pattern = ""
 
 
 @app.route("/")
@@ -26,9 +27,12 @@ def index():
 @app.route("/quiz", methods=["POST"])
 def quiz():
 
-    global quiz_questions
+    global quiz_questions, current_pattern
 
     name = request.form["name"]
+    pattern = request.form.get("pattern")
+
+    current_pattern = pattern
 
     selected_cos = request.form.getlist("co")
     selected_modules = request.form.getlist("module")
@@ -41,11 +45,25 @@ def quiz():
     if filtered.empty:
         return "No questions available for selected CO or Module."
 
+    # Pattern definitions
+    pattern_map = {
+        "p1": (10, 5),
+        "p2": (20, 10),
+        "p3": (30, 15)
+    }
+
+    n1, n2 = pattern_map.get(pattern, (10, 5))
+
     one_mark = filtered[filtered["marks"] == 1]
     two_mark = filtered[filtered["marks"] == 2]
 
-    q1 = one_mark.sample(min(10, len(one_mark)))
-    q2 = two_mark.sample(min(5, len(two_mark)))
+    # Strict validation (exam mode)
+    if len(one_mark) < n1 or len(two_mark) < n2:
+        return f"Not enough questions available for selected pattern. Required: {n1} (1-mark), {n2} (2-mark)"
+
+    # Sample questions
+    q1 = one_mark.sample(n1)
+    q2 = two_mark.sample(n2)
 
     quiz = pd.concat([q1, q2]).sample(frac=1)
 
@@ -73,7 +91,12 @@ def quiz():
 
     quiz_questions = questions
 
-    return render_template("quiz.html", questions=questions, name=name)
+    return render_template(
+        "quiz.html",
+        questions=questions,
+        name=name,
+        pattern=pattern
+    )
 
 
 @app.route("/submit", methods=["POST"])
@@ -95,12 +118,10 @@ def submit():
         marks = q["marks"]
         co = q["CO"]
 
-        # Initialize
         if co not in co_scores:
             co_scores[co] = 0
             co_max_marks[co] = 0
 
-        # Add to max marks
         co_max_marks[co] += marks
 
         obtained = 0
@@ -119,13 +140,18 @@ def submit():
             "co": co
         })
 
+    # Sort CO properly (CO1, CO2, CO10 handled correctly)
+    sorted_cos = sorted(co_scores.keys(), key=lambda x: int(x.replace("CO", "")))
+
     return render_template(
         "result.html",
         name=name,
         score=total_score,
         co_scores=co_scores,
         co_max_marks=co_max_marks,
-        results=results
+        results=results,
+        sorted_cos=sorted_cos,
+        pattern=current_pattern
     )
 
 
