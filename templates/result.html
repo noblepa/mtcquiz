@@ -84,7 +84,8 @@ window.MathJax = {
 <th>%</th>
 </tr>
 
-{% for co in co_scores.keys() | sort %}
+<!--{% for co in co_scores.keys() | sort %}-->
+{% for co in sorted_cos %}
 
 <tr>
 <td>{{co}}</td>
