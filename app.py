@@ -141,7 +141,12 @@ def submit():
         })
 
     # Sort CO properly (CO1, CO2, CO10 handled correctly)
-    sorted_cos = sorted(co_scores.keys(), key=lambda x: int(x.replace("CO", "")))
+    def extract_co_number(co):
+    import re
+    match = re.search(r'\d+', str(co))  # extract first number
+    return int(match.group()) if match else 999
+
+	sorted_cos = sorted(co_scores.keys(), key=extract_co_number)
 
     return render_template(
         "result.html",
