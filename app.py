@@ -35,12 +35,8 @@ def quiz():
     current_pattern = pattern
 
     selected_cos = request.form.getlist("co")
-    selected_modules = request.form.getlist("module")
-
-    filtered = df[
-        (df["CO"].isin(selected_cos)) |
-        (df["module"].isin(selected_modules))
-    ]
+    
+    filtered = df[df["CO"].isin(selected_cos)]
 
     if filtered.empty:
         return "No questions available for selected CO or Module."
