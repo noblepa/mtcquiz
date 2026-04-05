@@ -39,6 +39,15 @@ border:none;
 
 </style>
 
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
@@ -107,9 +116,9 @@ border:none;
 
 <tr>
 <td>{{loop.index}}</td>
-<td>{{r.question}}</td>
-<td>{{r.your}}</td>
-<td>{{r.correct}}</td>
+<td>{{r.question | safe}}</td>
+<td>{{r.your | safe}}</td>
+<td>{{r.correct | safe}}</td>
 <td>{{r.co}}</td>
 <td>{{r.obtained}} / {{r.marks}}</td>
 </tr>
